@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link href="calculator.css" rel="stylesheet" />
+    <title>Calculator</title>
+  </head>
+  <body>
+    <form>
+      <header id="topic">CALCULATOR</header>
+      <input type="text" name="display" id="display" value="" disabled />
+      <table>
+        <tr>
+          <td>
+            <input type="button" value="AC" class="all-clear" />
+          </td>
+          <td>
+            <input type="button" value="DE" class="delete" />
+          </td>
+          <td>
+            <input type="button" value="." class="decimal" />
+          </td>
+          <td>
+            <input type="button" value="/" class="operator" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input type="button" value="7" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="8" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="9" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="*" class="operator" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input type="button" value="4" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="5" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="6" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="-" class="operator" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input type="button" value="1" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="2" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="3" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="+" class="operator" />
+          </td>
+        </tr>
+        <tr id="lastline">
+          <td>
+            <input type="button" value="00" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="0" class="operand" />
+          </td>
+          <td>
+            <input type="button" value="=" class="operator" />
+          </td>
+        </tr>
+      </table>
+    </form>
+    <script>
+      const calculator = {
+        displayValue: "0",
+        firstOperand: null,
+        waitingForSecondOperand: false,
+        operator: null,
+      };
+
+      function inputDigit(digit) {
+        const displayValue = calculator.displayValue;
+        const waitingForSecondOperand = calculator.waitingForSecondOperand;
+        if (waitingForSecondOperand === true) {
+          calculator.displayValue = digit;
+          calculator.waitingForSecondOperand = false;
+        } else {
+          calculator.displayValue =
+            displayValue == "0" ? digit : displayValue + digit;
+        }
+
+        console.log(calculator);
+      }
+
+      function deleteLastDigit() {
+        const displayValue = calculator.displayValue;
+        calculator.displayValue = displayValue.slice(0, -1);
+
+        if (calculator.displayValue.length) {
+          calculator.firstOperand = calculator.displayValue;
+        }
+        if (!calculator.displayValue.length) {
+          resetCalculator();
+        }
+        return;
+        console.log(calculator);
+      }
+
+      function inputDecimal(dot) {
+        if (!calculator.displayValue.includes(dot)) {
+          calculator.displayValue += dot;
+        }
+        if (calculator.waitingForSecondOperand === true) {
+          if (!calculator.displayValue.length) calculator.displayValue = "0.";
+          calculator.waitingForSecondOperand = false;
+          return;
+        }
+      }
+
+      function handleOperator(nextOperator) {
+        const firstOperand = calculator.firstOperand;
+        const displayValue = calculator.displayValue;
+        const operator = calculator.operator;
+        const inputValue = parseFloat(displayValue);
+        if (operator && calculator.waitingForSecondOperand) {
+          calculator.operator = nextOperator;
+          console.log(calculator);
+          return;
+        }
+        if (firstOperand === null && !isNaN(inputValue)) {
+          calculator.firstOperand = inputValue;
+        } else if (operator) {
+          const result = calculate(firstOperand, operator, inputValue);
+          calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
+          calculator.firstOperand = result;
+        }
+        calculator.waitingForSecondOperand = true;
+        calculator.operator = nextOperator;
+        console.log(calculator);
+      }
+
+      function calculate(firstOperand, operator, secondOperand) {
+        if (operator === "+") {
+          return firstOperand + secondOperand;
+        } else if (operator === "-") {
+          return firstOperand - secondOperand;
+        } else if (operator === "*") {
+          return firstOperand * secondOperand;
+        } else if (operator === "/") {
+          return firstOperand / secondOperand;
+        }
+        return secondOperand;
+      }
+
+      function resetCalculator() {
+        calculator.displayValue = "0";
+        calculator.waitingForSecondOperand = null;
+        calculator.firstOperand = null;
+        calculator.operator = null;
+        console.log(calculator);
+      }
+
+      function updateDisplay() {
+        const display = document.querySelector("#display");
+        display.value = calculator.displayValue;
+      }
+      updateDisplay();
+
+      const keys = document.querySelectorAll('input[type="button"]');
+      keys.forEach((item) => {
+        item.addEventListener("click", (event) => {
+          const target = event.target;
+          const value = target.value;
+
+          switch (value) {
+            case "+":
+            case "-":
+            case "*":
+            case "/":
+            case "=":
+              handleOperator(value);
+              break;
+            case ".":
+              inputDecimal(value);
+              break;
+            case "AC":
+              resetCalculator();
+              break;
+            case "DE":
+              deleteLastDigit();
+
+            default:
+              if (Number.isInteger(parseFloat(value))) {
+                inputDigit(value);
+              }
+          }
+          updateDisplay();
+        });
+      });
+    </script>
+  </body>
+</html>
